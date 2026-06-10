@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "radar-pd"
+version = "0.0.1"
+description = "RADAR-PD pip-install prototype"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+  "radar-pd-gsasii-runtime==0.0.1",
+  "huggingface-hub>=0.24",
+  "platformdirs>=4",
+  "pyyaml>=6",
+]
+
+[project.optional-dependencies]
+app = [
+  "streamlit",
+  "pandas",
+  "plotly",
+  "psutil",
+  "gdown",
+  "scikit-learn",
+  "pymatgen",
+  "torch",
+]
+
+[project.scripts]
+radar-pd = "radar_pd.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
