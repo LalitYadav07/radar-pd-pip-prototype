@@ -12,11 +12,14 @@ It does not replace the main RADAR-PD development repository. It only contains:
 
 ## One-command install test
 
-On a Linux x86_64 workstation with Python 3.12:
+On a Linux x86_64 workstation:
 
 ```bash
 curl -LsSf https://raw.githubusercontent.com/LalitYadav07/radar-pd-pip-prototype/main/install.sh | bash
 ```
+
+If `python3.12` is not available, the installer bootstraps a local Python 3.12
+with `uv` under `.radar-pd-bootstrap/` in the directory where you run it.
 
 Then launch:
 
@@ -32,15 +35,41 @@ curl -LsSf https://raw.githubusercontent.com/LalitYadav07/radar-pd-pip-prototype
   | PYTHON_BIN=/path/to/python3.12 bash
 ```
 
+To keep everything in the current folder:
+
+```bash
+mkdir -p radar-pd-local
+cd radar-pd-local
+curl -LsSf https://raw.githubusercontent.com/LalitYadav07/radar-pd-pip-prototype/main/install.sh \
+  | RADAR_PD_VENV="$PWD/env" \
+    RADAR_PD_SOURCE_DIR="$PWD/source" \
+    RADAR_PD_CACHE_HOME="$PWD/cache" \
+    RADAR_PD_BOOTSTRAP_DIR="$PWD/.bootstrap" \
+    bash
+source env/bin/activate
+radar-pd ui --source-root "$PWD/source"
+```
+
+The local-folder layout is:
+
+```text
+radar-pd-local/
+  env/          Python virtual environment
+  source/       cloned RADAR-PD app checkout
+  cache/        RADAR-PD data cache when used by RADAR_PD_CACHE_HOME
+  .bootstrap/   uv/Python 3.12 bootstrap files, only if needed
+```
+
 ## What gets installed
 
 The installer:
 
-1. creates `~/radar-pd-env`,
+1. creates `~/radar-pd-env`, or `RADAR_PD_VENV` if supplied,
 2. installs `radar-pd-gsasii-runtime` from the wheel in this repo,
 3. installs `radar-pd[app]` from this repo,
 4. clones `https://github.com/LalitYadav07/Impurity_detection_GSAS_ver6.git`
    into `~/.local/share/radar-pd/source/Impurity_detection_GSAS_ver6`,
+   or `RADAR_PD_SOURCE_DIR` if supplied,
 5. runs `radar-pd doctor --smoke-gsas-project`.
 
 ## Manual pip install

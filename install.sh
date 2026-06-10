@@ -7,12 +7,53 @@ APP_REPO="${RADAR_PD_APP_REPO:-https://github.com/LalitYadav07/Impurity_detectio
 PYTHON_BIN="${PYTHON_BIN:-python3.12}"
 VENV_DIR="${RADAR_PD_VENV:-$HOME/radar-pd-env}"
 SOURCE_DIR="${RADAR_PD_SOURCE_DIR:-$HOME/.local/share/radar-pd/source/Impurity_detection_GSAS_ver6}"
+BOOTSTRAP_DIR="${RADAR_PD_BOOTSTRAP_DIR:-$(pwd)/.radar-pd-bootstrap}"
+PYTHON_INSTALL_DIR="${RADAR_PD_PYTHON_INSTALL_DIR:-$BOOTSTRAP_DIR/python}"
+UV_BIN="${UV_BIN:-}"
 RUNTIME_WHEEL="$RAW_BASE/wheelhouse/radar_pd_gsasii_runtime-0.0.1-cp312-cp312-linux_x86_64.whl"
 
 if ! command -v "$PYTHON_BIN" >/dev/null 2>&1; then
-  echo "Python 3.12 is required. Set PYTHON_BIN=/path/to/python3.12 if needed." >&2
-  exit 1
+  echo "Python 3.12 executable '$PYTHON_BIN' was not found."
+  echo "Bootstrapping a local Python 3.12 with uv under: $PYTHON_INSTALL_DIR"
+
+  if [[ -z "$UV_BIN" ]]; then
+    if command -v uv >/dev/null 2>&1; then
+      UV_BIN="$(command -v uv)"
+    else
+      if ! command -v curl >/dev/null 2>&1; then
+        echo "curl is required to install uv when Python 3.12 is missing." >&2
+        exit 1
+      fi
+      mkdir -p "$BOOTSTRAP_DIR/uv"
+      echo "Installing uv locally under: $BOOTSTRAP_DIR/uv"
+      curl -LsSf https://astral.sh/uv/install.sh | UV_UNMANAGED_INSTALL="$BOOTSTRAP_DIR/uv" sh
+      UV_BIN="$BOOTSTRAP_DIR/uv/uv"
+    fi
+  fi
+
+  "$UV_BIN" python install 3.12 --install-dir "$PYTHON_INSTALL_DIR"
+  PYTHON_BIN=""
+  for candidate in "$PYTHON_INSTALL_DIR"/*/bin/python3.12; do
+    if [[ -x "$candidate" ]]; then
+      PYTHON_BIN="$candidate"
+      break
+    fi
+  done
+  if [[ -z "$PYTHON_BIN" ]]; then
+    echo "uv installed Python 3.12, but no python3.12 executable was found under $PYTHON_INSTALL_DIR" >&2
+    exit 1
+  fi
+  echo "Using bootstrapped Python: $PYTHON_BIN"
 fi
+
+"$PYTHON_BIN" - <<'PYTHON_VERSION_CHECK'
+import sys
+if sys.version_info[:2] != (3, 12):
+    raise SystemExit(
+        f"RADAR-PD prototype requires Python 3.12, got "
+        f"{sys.version_info.major}.{sys.version_info.minor} at {sys.executable}"
+    )
+PYTHON_VERSION_CHECK
 
 if ! command -v git >/dev/null 2>&1; then
   echo "git is required to fetch the RADAR-PD source checkout." >&2
