@@ -63,8 +63,9 @@ radar-pd-local/
 ## Native Windows install test
 
 Native Windows support uses a separate Windows runtime wheel and PowerShell
-installer. The Windows wheel is built by GitHub Actions from the GSAS-II source
-tree plus the official GSAS-II `win_64_p3.12_n2.2` binary bundle.
+installer. The Windows wheel is built by GitHub Actions from the official
+GSAS-II source tree plus the official GSAS-II `win_64_p3.12_n2.2` binary
+bundle.
 
 In PowerShell:
 

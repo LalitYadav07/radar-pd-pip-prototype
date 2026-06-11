@@ -19,13 +19,13 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Clone RADAR-PD source repo
-        run: git clone --depth 1 https://github.com/LalitYadav07/Impurity_detection_GSAS_ver6.git app-source
+      - name: Clone GSAS-II source repo
+        run: git clone --depth 1 https://github.com/AdvancedPhotonSource/GSAS-II.git gsasii-source
 
       - name: Build Windows GSAS-II runtime wheel
         run: >-
           python build_runtime_wheel.py
-          --gsasii-root app-source/GSAS-II
+          --gsasii-root gsasii-source
           --out-dir wheelhouse
           --binary-bundle-url https://github.com/AdvancedPhotonSource/GSAS-II-buildtools/releases/download/v1.0.1/win_64_p3.12_n2.2.tgz
           --numpy-requirement "numpy>=2.2,<3"
