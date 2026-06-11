@@ -60,6 +60,40 @@ radar-pd-local/
   .bootstrap/   uv/Python 3.12 bootstrap files, only if needed
 ```
 
+## Native Windows install test
+
+Native Windows support uses a separate Windows runtime wheel and PowerShell
+installer. The Windows wheel is built by GitHub Actions from the GSAS-II source
+tree plus the official GSAS-II `win_64_p3.12_n2.2` binary bundle.
+
+In PowerShell:
+
+```powershell
+mkdir radar-pd-local
+cd radar-pd-local
+iwr https://raw.githubusercontent.com/LalitYadav07/radar-pd-pip-prototype/main/install.ps1 -OutFile install.ps1
+powershell -ExecutionPolicy Bypass -File .\install.ps1 -InstallRoot $PWD
+```
+
+Then launch:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\launch-radar-pd.ps1
+```
+
+Expected local-folder layout:
+
+```text
+radar-pd-local/
+  env/          Python virtual environment
+  source/       cloned RADAR-PD app checkout
+  cache/        RADAR-PD data cache
+  .bootstrap/   uv/Python 3.12 bootstrap files, only if needed
+```
+
+If the Windows wheel has not been built yet, first run the
+`Build Windows GSAS-II runtime wheel` workflow in this repository.
+
 ## What gets installed
 
 The installer:

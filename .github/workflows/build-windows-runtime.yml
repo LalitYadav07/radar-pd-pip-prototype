@@ -1,0 +1,54 @@
+name: Build Windows GSAS-II runtime wheel
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-windows-runtime:
+    runs-on: windows-latest
+
+    steps:
+      - name: Check out distribution prototype
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Clone RADAR-PD source repo
+        run: git clone --depth 1 https://github.com/LalitYadav07/Impurity_detection_GSAS_ver6.git app-source
+
+      - name: Build Windows GSAS-II runtime wheel
+        run: >-
+          python build_runtime_wheel.py
+          --gsasii-root app-source/GSAS-II
+          --out-dir wheelhouse
+          --binary-bundle-url https://github.com/AdvancedPhotonSource/GSAS-II-buildtools/releases/download/v1.0.1/win_64_p3.12_n2.2.tgz
+          --numpy-requirement "numpy>=2.2,<3"
+
+      - name: Install and smoke-test Windows runtime
+        shell: pwsh
+        run: |
+          $wheel = Get-ChildItem wheelhouse\radar_pd_gsasii_runtime-0.0.1-cp312-cp312-win_amd64.whl
+          python -m venv smoke-env
+          .\smoke-env\Scripts\python.exe -m pip install --upgrade pip
+          .\smoke-env\Scripts\python.exe -m pip install $wheel.FullName .\radar_pd
+          .\smoke-env\Scripts\radar-pd.exe doctor --smoke-gsas-project
+
+      - name: Commit Windows wheel
+        shell: pwsh
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add wheelhouse/radar_pd_gsasii_runtime-0.0.1-cp312-cp312-win_amd64.whl
+          git diff --cached --quiet
+          if ($LASTEXITCODE -eq 0) {
+            Write-Host "Windows wheel unchanged; nothing to commit."
+          } else {
+            git commit -m "Add Windows GSAS-II runtime wheel"
+            git push
+          }
