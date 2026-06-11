@@ -67,6 +67,10 @@ installer. The Windows wheel is built by GitHub Actions from the official
 GSAS-II source tree plus the official GSAS-II `win_64_p3.12_n2.2` binary
 bundle.
 
+When Python 3.12 is missing, the Windows installer bootstraps it with `uv` and
+passes `--native-tls` so managed Windows machines can use the system certificate
+store.
+
 In PowerShell:
 
 ```powershell

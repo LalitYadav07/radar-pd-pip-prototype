@@ -64,8 +64,21 @@ function Invoke-Python {
     }
 }
 
+function Invoke-NativeChecked {
+    param(
+        [string]$Executable,
+        [Parameter(ValueFromRemainingArguments = $true)]
+        [string[]]$Args
+    )
+    & $Executable @Args
+    if ($LASTEXITCODE -ne 0) {
+        throw "Command failed with exit code ${LASTEXITCODE}: $Executable $($Args -join ' ')"
+    }
+}
+
 New-Item -ItemType Directory -Force -Path $InstallRoot, $CacheDir, $BootstrapDir | Out-Null
 $env:RADAR_PD_CACHE_HOME = $CacheDir
+$env:UV_NATIVE_TLS = "1"
 
 $Python = Find-Python312 $PythonBin
 if (-not $Python) {
@@ -79,7 +92,7 @@ if (-not $Python) {
         Remove-Item Env:\UV_UNMANAGED_INSTALL -ErrorAction SilentlyContinue
     }
 
-    & $UvExe python install 3.12 --install-dir $PythonInstallDir
+    Invoke-NativeChecked -Executable $UvExe -Args @("--native-tls", "python", "install", "3.12", "--install-dir", $PythonInstallDir)
     $Python = Get-ChildItem -Path $PythonInstallDir -Filter python.exe -Recurse |
         Where-Object { Test-Python312 $_.FullName } |
         Select-Object -First 1 -ExpandProperty FullName
