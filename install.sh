@@ -7,10 +7,12 @@ APP_REPO="${RADAR_PD_APP_REPO:-https://github.com/LalitYadav07/Impurity_detectio
 PYTHON_BIN="${PYTHON_BIN:-python3.12}"
 VENV_DIR="${RADAR_PD_VENV:-$HOME/radar-pd-env}"
 SOURCE_DIR="${RADAR_PD_SOURCE_DIR:-$HOME/.local/share/radar-pd/source/Impurity_detection_GSAS_ver6}"
+CACHE_HOME="${RADAR_PD_CACHE_HOME:-$HOME/.cache/radar-pd}"
 BOOTSTRAP_DIR="${RADAR_PD_BOOTSTRAP_DIR:-$(pwd)/.radar-pd-bootstrap}"
 PYTHON_INSTALL_DIR="${RADAR_PD_PYTHON_INSTALL_DIR:-$BOOTSTRAP_DIR/python}"
 UV_BIN="${UV_BIN:-}"
 RUNTIME_WHEEL="$RAW_BASE/wheelhouse/radar_pd_gsasii_runtime-0.0.1-cp312-cp312-linux_x86_64.whl"
+LAUNCH_SCRIPT="${RADAR_PD_LAUNCH_SCRIPT:-$(pwd)/launch-radar-pd.sh}"
 
 if ! command -v "$PYTHON_BIN" >/dev/null 2>&1; then
   echo "Python 3.12 executable '$PYTHON_BIN' was not found."
@@ -60,6 +62,9 @@ if ! command -v git >/dev/null 2>&1; then
   exit 1
 fi
 
+mkdir -p "$CACHE_HOME"
+export RADAR_PD_CACHE_HOME="$CACHE_HOME"
+
 echo "Creating/updating virtual environment: $VENV_DIR"
 "$PYTHON_BIN" -m venv "$VENV_DIR"
 "$VENV_DIR/bin/python" -m pip install --upgrade pip
@@ -81,6 +86,19 @@ fi
 echo "Running GSAS-II smoke diagnostic..."
 "$VENV_DIR/bin/radar-pd" doctor --smoke-gsas-project
 
+mkdir -p "$(dirname "$LAUNCH_SCRIPT")"
+cat > "$LAUNCH_SCRIPT" <<LAUNCH_SCRIPT_CONTENT
+#!/usr/bin/env bash
+set -euo pipefail
+
+PORT="\${1:-8501}"
+ADDRESS="\${RADAR_PD_ADDRESS:-127.0.0.1}"
+export RADAR_PD_CACHE_HOME="$CACHE_HOME"
+
+exec "$VENV_DIR/bin/radar-pd" ui --source-root "$SOURCE_DIR" --address "\$ADDRESS" --port "\$PORT"
+LAUNCH_SCRIPT_CONTENT
+chmod +x "$LAUNCH_SCRIPT"
+
 echo
 echo "Install complete."
 echo
@@ -88,7 +106,8 @@ echo "Activate:"
 echo "  source \"$VENV_DIR/bin/activate\""
 echo
 echo "Launch GUI:"
-echo "  \"$VENV_DIR/bin/radar-pd\" ui --source-root \"$SOURCE_DIR\""
+echo "  \"$LAUNCH_SCRIPT\""
+echo "  \"$LAUNCH_SCRIPT\" 8502"
 echo
 echo "If catalogs are not present yet, install/copy them after activation, for example:"
-echo "  radar-pd install-data --source /path/to/catalog --name standard"
+echo "  RADAR_PD_CACHE_HOME=\"$CACHE_HOME\" radar-pd install-data --source /path/to/catalog --name standard"

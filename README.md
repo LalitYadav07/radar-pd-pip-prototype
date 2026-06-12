@@ -40,8 +40,7 @@ curl -LsSf https://raw.githubusercontent.com/LalitYadav07/radar-pd-installer/mai
 Launch:
 
 ```bash
-source env/bin/activate
-radar-pd ui --source-root "$PWD/source"
+./launch-radar-pd.sh
 ```
 
 Install into default user locations instead:
@@ -93,6 +92,7 @@ radar-pd-local/
   source/       RADAR-PD application checkout
   cache/        RADAR-PD data cache
   .bootstrap/   uv and managed Python, only if Python 3.12 was missing
+  launch-radar-pd.sh or launch-radar-pd.ps1
 ```
 
 The installation is intentionally isolated. Removing the install directory
@@ -219,7 +219,7 @@ Use a different port:
 Linux:
 
 ```bash
-radar-pd ui --source-root "$PWD/source" --port 8502
+./launch-radar-pd.sh 8502
 ```
 
 Windows:
