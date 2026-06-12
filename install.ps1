@@ -165,7 +165,7 @@ if (-not (Test-PortAvailable `$Port)) {
 }
 
 `$env:RADAR_PD_CACHE_HOME = "$CacheDir"
-Write-Host "Launching RADAR-PD at http://`$Address`:`$Port"
+Write-Host "Launching RADAR-PD at http://`${Address}:`${Port}"
 & "$VenvDir\Scripts\radar-pd.exe" ui --source-root "$SourceDir" --address `$Address --port `$Port
 "@ | Set-Content -Path $LaunchScript -Encoding UTF8
 
