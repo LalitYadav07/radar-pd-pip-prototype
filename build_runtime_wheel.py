@@ -64,7 +64,7 @@ def build_runtime_wheel(
     numpy_requirement: str,
 ) -> Path:
     if sys.version_info[:2] != (3, 12):
-        raise SystemExit("Build this prototype with Python 3.12.")
+        raise SystemExit("Build the RADAR-PD runtime wheel with Python 3.12.")
 
     gsasii_root = gsasii_root.resolve()
     if not (gsasii_root / "GSASII").is_dir():

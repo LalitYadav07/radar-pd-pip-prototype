@@ -1,152 +1,250 @@
-# RADAR-PD internet install prototype
+# RADAR-PD Installer
 
-This repository is a temporary distribution prototype for testing a no-copy
-install path on a fresh Linux workstation.
+[![Build Windows GSAS-II runtime wheel](https://github.com/LalitYadav07/radar-pd-installer/actions/workflows/build-windows-runtime.yml/badge.svg)](https://github.com/LalitYadav07/radar-pd-installer/actions/workflows/build-windows-runtime.yml)
 
-It does not replace the main RADAR-PD development repository. It only contains:
+RADAR-PD Installer provides a self-contained installation path for the RADAR-PD
+graphical application and command-line launcher on Linux and native Windows.
 
-- the small `radar-pd` launcher package,
-- a Linux x86_64 / Python 3.12 GSAS-II runtime wheel,
-- an installer script that creates a venv, installs the package, and clones the
-  current RADAR-PD app source from GitHub.
+The installer creates a local Python environment, installs the RADAR-PD launcher
+package, installs a bundled GSAS-II runtime wheel for the host platform, clones
+the RADAR-PD application source, and runs a GSAS-II smoke diagnostic before
+reporting success.
 
-## One-command install test
+## Platform Support
 
-On a Linux x86_64 workstation:
+| Platform | Status | Runtime wheel |
+| --- | --- | --- |
+| Linux x86_64 | Supported | `radar_pd_gsasii_runtime-0.0.1-cp312-cp312-linux_x86_64.whl` |
+| Windows x86_64 | Supported | `radar_pd_gsasii_runtime-0.0.1-cp312-cp312-win_amd64.whl` |
 
-```bash
-curl -LsSf https://raw.githubusercontent.com/LalitYadav07/radar-pd-pip-prototype/main/install.sh | bash
-```
+Both installers require internet access for Python dependencies and source
+checkout. If Python 3.12 is not available, the installers bootstrap a local
+Python 3.12 with `uv`.
 
-If `python3.12` is not available, the installer bootstraps a local Python 3.12
-with `uv` under `.radar-pd-bootstrap/` in the directory where you run it.
+## Quick Start: Linux
 
-Then launch:
-
-```bash
-source ~/radar-pd-env/bin/activate
-radar-pd ui --source-root ~/.local/share/radar-pd/source/Impurity_detection_GSAS_ver6
-```
-
-If Python 3.12 has a different path:
-
-```bash
-curl -LsSf https://raw.githubusercontent.com/LalitYadav07/radar-pd-pip-prototype/main/install.sh \
-  | PYTHON_BIN=/path/to/python3.12 bash
-```
-
-To keep everything in the current folder:
+Install into the current directory:
 
 ```bash
 mkdir -p radar-pd-local
 cd radar-pd-local
-curl -LsSf https://raw.githubusercontent.com/LalitYadav07/radar-pd-pip-prototype/main/install.sh \
+
+curl -LsSf https://raw.githubusercontent.com/LalitYadav07/radar-pd-installer/main/install.sh \
   | RADAR_PD_VENV="$PWD/env" \
     RADAR_PD_SOURCE_DIR="$PWD/source" \
     RADAR_PD_CACHE_HOME="$PWD/cache" \
     RADAR_PD_BOOTSTRAP_DIR="$PWD/.bootstrap" \
     bash
+```
+
+Launch:
+
+```bash
 source env/bin/activate
 radar-pd ui --source-root "$PWD/source"
 ```
 
-The local-folder layout is:
+Install into default user locations instead:
 
-```text
-radar-pd-local/
-  env/          Python virtual environment
-  source/       cloned RADAR-PD app checkout
-  cache/        RADAR-PD data cache when used by RADAR_PD_CACHE_HOME
-  .bootstrap/   uv/Python 3.12 bootstrap files, only if needed
+```bash
+curl -LsSf https://raw.githubusercontent.com/LalitYadav07/radar-pd-installer/main/install.sh | bash
 ```
 
-## Native Windows install test
+Default locations:
 
-Native Windows support uses a separate Windows runtime wheel and PowerShell
-installer. The Windows wheel is built by GitHub Actions from the official
-GSAS-II source tree plus the official GSAS-II `win_64_p3.12_n2.2` binary
-bundle.
+```text
+~/radar-pd-env
+~/.local/share/radar-pd/source/Impurity_detection_GSAS_ver6
+~/.cache/radar-pd
+```
 
-When Python 3.12 is missing, the Windows installer bootstraps it with `uv` and
-passes `--native-tls` so managed Windows machines can use the system certificate
-store.
+## Quick Start: Windows
 
-In PowerShell:
+Run in PowerShell:
 
 ```powershell
 mkdir radar-pd-local
 cd radar-pd-local
-iwr https://raw.githubusercontent.com/LalitYadav07/radar-pd-pip-prototype/main/install.ps1 -OutFile install.ps1
+
+iwr https://raw.githubusercontent.com/LalitYadav07/radar-pd-installer/main/install.ps1 -OutFile install.ps1
 powershell -ExecutionPolicy Bypass -File .\install.ps1 -InstallRoot $PWD
 ```
 
-Then launch:
+Launch:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\launch-radar-pd.ps1
 ```
 
-If port `8501` is already in use, the generated launcher will choose the next
-available port. You can also request a port explicitly:
+If port `8501` is already in use, the generated launcher chooses the next free
+port in the `8501-8599` range. You can also request a port explicitly:
 
 ```powershell
 powershell -ExecutionPolicy Bypass -File .\launch-radar-pd.ps1 -Port 8502
 ```
 
-Expected local-folder layout:
+## Installed Layout
+
+For local-folder installs:
 
 ```text
 radar-pd-local/
   env/          Python virtual environment
-  source/       cloned RADAR-PD app checkout
+  source/       RADAR-PD application checkout
   cache/        RADAR-PD data cache
-  .bootstrap/   uv/Python 3.12 bootstrap files, only if needed
+  .bootstrap/   uv and managed Python, only if Python 3.12 was missing
 ```
 
-If the Windows wheel has not been built yet, first run the
-`Build Windows GSAS-II runtime wheel` workflow in this repository.
+The installation is intentionally isolated. Removing the install directory
+removes the environment, cloned source, cache, and bootstrap files.
 
-## What gets installed
+## Diagnostics
 
-The installer:
-
-1. creates `~/radar-pd-env`, or `RADAR_PD_VENV` if supplied,
-2. installs `radar-pd-gsasii-runtime` from the wheel in this repo,
-3. installs `radar-pd[app]` from this repo,
-4. clones `https://github.com/LalitYadav07/Impurity_detection_GSAS_ver6.git`
-   into `~/.local/share/radar-pd/source/Impurity_detection_GSAS_ver6`,
-   or `RADAR_PD_SOURCE_DIR` if supplied,
-5. runs `radar-pd doctor --smoke-gsas-project`.
-
-## Manual pip install
-
-If you do not want the script:
+The installers run this automatically:
 
 ```bash
-python3.12 -m venv ~/radar-pd-env
-source ~/radar-pd-env/bin/activate
-python -m pip install --upgrade pip
-python -m pip install \
-  "radar-pd-gsasii-runtime @ https://raw.githubusercontent.com/LalitYadav07/radar-pd-pip-prototype/main/wheelhouse/radar_pd_gsasii_runtime-0.0.1-cp312-cp312-linux_x86_64.whl" \
-  "radar-pd[app] @ git+https://github.com/LalitYadav07/radar-pd-pip-prototype.git#subdirectory=radar_pd"
-git clone --depth 1 https://github.com/LalitYadav07/Impurity_detection_GSAS_ver6.git \
-  ~/.local/share/radar-pd/source/Impurity_detection_GSAS_ver6
 radar-pd doctor --smoke-gsas-project
-radar-pd ui --source-root ~/.local/share/radar-pd/source/Impurity_detection_GSAS_ver6
 ```
 
-## Catalogs and weights
+It verifies:
 
-Large catalogs should not be stored in this pip package. They should be
-downloaded or copied into the RADAR-PD cache separately:
+- Python 3.12 is active.
+- The bundled GSAS-II runtime can be imported.
+- A minimal GSAS-II `.gpx` project can be created and saved.
+- Installed RADAR-PD data packs can be discovered.
+
+Run it manually any time:
+
+```bash
+radar-pd doctor --smoke-gsas-project
+```
+
+## Data Catalogs
+
+Large diffraction catalogs and example datasets are not stored in the installer
+wheel. Install or copy data into the RADAR-PD cache with:
 
 ```bash
 radar-pd install-data --source /path/to/catalog --name standard
 ```
 
-The next production step is to replace this with a pinned bootstrap manifest
-that downloads the existing hosted catalog automatically and verifies checksums.
+The launcher package also supports Hugging Face dataset downloads:
 
-## Scope
+```bash
+radar-pd install-data --hf-repo owner/radar-pd-data --name standard
+```
 
-This is a fast Linux-only proof of concept. It is not yet a PyPI release.
+For reproducible deployments, record the dataset source, revision, and checksum
+alongside the RADAR-PD run outputs.
+
+## Manual Pip Installation
+
+Linux:
+
+```bash
+python3.12 -m venv radar-pd-env
+source radar-pd-env/bin/activate
+python -m pip install --upgrade pip
+python -m pip install \
+  "radar-pd-gsasii-runtime @ https://raw.githubusercontent.com/LalitYadav07/radar-pd-installer/main/wheelhouse/radar_pd_gsasii_runtime-0.0.1-cp312-cp312-linux_x86_64.whl" \
+  "radar-pd[app] @ git+https://github.com/LalitYadav07/radar-pd-installer.git#subdirectory=radar_pd"
+git clone --depth 1 https://github.com/LalitYadav07/Impurity_detection_GSAS_ver6.git source
+radar-pd doctor --smoke-gsas-project
+radar-pd ui --source-root "$PWD/source"
+```
+
+Windows PowerShell:
+
+```powershell
+python -m venv env
+.\env\Scripts\python.exe -m pip install --upgrade pip
+.\env\Scripts\python.exe -m pip install `
+  "radar-pd-gsasii-runtime @ https://raw.githubusercontent.com/LalitYadav07/radar-pd-installer/main/wheelhouse/radar_pd_gsasii_runtime-0.0.1-cp312-cp312-win_amd64.whl" `
+  "radar-pd[app] @ git+https://github.com/LalitYadav07/radar-pd-installer.git#subdirectory=radar_pd"
+git clone --depth 1 https://github.com/LalitYadav07/Impurity_detection_GSAS_ver6.git source
+.\env\Scripts\radar-pd.exe doctor --smoke-gsas-project
+.\env\Scripts\radar-pd.exe ui --source-root "$PWD\source"
+```
+
+## Runtime Wheels
+
+The GSAS-II runtime wheels are platform-specific and Python 3.12-specific.
+
+- Linux wheel: built from the pinned local RADAR-PD GSAS-II runtime.
+- Windows wheel: built by GitHub Actions from the official GSAS-II source tree
+  plus the official GSAS-II `win_64_p3.12_n2.2` binary bundle.
+
+The Windows build workflow installs the generated wheel into a clean virtual
+environment and runs:
+
+```powershell
+radar-pd doctor --smoke-gsas-project
+```
+
+## Troubleshooting
+
+### Python 3.12 is missing
+
+No action is normally required. The installers bootstrap Python 3.12 with `uv`.
+
+If you already have Python 3.12 in a nonstandard location:
+
+Linux:
+
+```bash
+curl -LsSf https://raw.githubusercontent.com/LalitYadav07/radar-pd-installer/main/install.sh \
+  | PYTHON_BIN=/path/to/python3.12 bash
+```
+
+Windows:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\install.ps1 `
+  -InstallRoot $PWD `
+  -PythonBin C:\Path\To\python.exe
+```
+
+### Windows certificate error while bootstrapping Python
+
+The Windows installer sets `UV_NATIVE_TLS=1` and invokes `uv --native-tls` so
+managed workstations can use the Windows certificate store.
+
+If this still fails, install Python 3.12 manually and rerun the installer with
+`-PythonBin`.
+
+### Streamlit port is busy
+
+Use a different port:
+
+Linux:
+
+```bash
+radar-pd ui --source-root "$PWD/source" --port 8502
+```
+
+Windows:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\launch-radar-pd.ps1 -Port 8502
+```
+
+### Git is missing
+
+Install Git first. The installer uses Git to clone the RADAR-PD application
+source checkout.
+
+## Repository Contents
+
+```text
+install.sh                         Linux installer
+install.ps1                        Windows installer
+radar_pd/                          Python launcher package
+wheelhouse/                        Platform-specific GSAS-II runtime wheels
+build_runtime_wheel.py             Runtime wheel builder used by CI
+.github/workflows/                 Runtime wheel build and smoke-test workflow
+```
+
+## Related Projects
+
+- RADAR-PD application source: <https://github.com/LalitYadav07/Impurity_detection_GSAS_ver6>
+- GSAS-II: <https://github.com/AdvancedPhotonSource/GSAS-II>

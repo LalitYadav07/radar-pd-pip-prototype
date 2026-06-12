@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-DIST_REPO="${RADAR_PD_DIST_REPO:-https://github.com/LalitYadav07/radar-pd-pip-prototype.git}"
-RAW_BASE="${RADAR_PD_RAW_BASE:-https://raw.githubusercontent.com/LalitYadav07/radar-pd-pip-prototype/main}"
+DIST_REPO="${RADAR_PD_DIST_REPO:-https://github.com/LalitYadav07/radar-pd-installer.git}"
+RAW_BASE="${RADAR_PD_RAW_BASE:-https://raw.githubusercontent.com/LalitYadav07/radar-pd-installer/main}"
 APP_REPO="${RADAR_PD_APP_REPO:-https://github.com/LalitYadav07/Impurity_detection_GSAS_ver6.git}"
 PYTHON_BIN="${PYTHON_BIN:-python3.12}"
 VENV_DIR="${RADAR_PD_VENV:-$HOME/radar-pd-env}"
@@ -50,7 +50,7 @@ fi
 import sys
 if sys.version_info[:2] != (3, 12):
     raise SystemExit(
-        f"RADAR-PD prototype requires Python 3.12, got "
+        f"RADAR-PD requires Python 3.12, got "
         f"{sys.version_info.major}.{sys.version_info.minor} at {sys.executable}"
     )
 PYTHON_VERSION_CHECK
@@ -64,7 +64,7 @@ echo "Creating/updating virtual environment: $VENV_DIR"
 "$PYTHON_BIN" -m venv "$VENV_DIR"
 "$VENV_DIR/bin/python" -m pip install --upgrade pip
 
-echo "Installing RADAR-PD prototype from GitHub..."
+echo "Installing RADAR-PD from GitHub..."
 "$VENV_DIR/bin/python" -m pip install \
   "radar-pd-gsasii-runtime @ $RUNTIME_WHEEL" \
   "radar-pd[app] @ git+$DIST_REPO#subdirectory=radar_pd"

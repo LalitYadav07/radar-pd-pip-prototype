@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "radar-pd"
 version = "0.0.1"
-description = "RADAR-PD pip-install prototype"
+description = "RADAR-PD installer and runtime launcher"
 requires-python = ">=3.12,<3.13"
 dependencies = [
   "radar-pd-gsasii-runtime==0.0.1",

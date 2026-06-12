@@ -1,8 +1,8 @@
 param(
     [string]$InstallRoot = (Get-Location).Path,
     [string]$PythonBin = "python",
-    [string]$DistRepo = "https://github.com/LalitYadav07/radar-pd-pip-prototype.git",
-    [string]$RawBase = "https://raw.githubusercontent.com/LalitYadav07/radar-pd-pip-prototype/main",
+    [string]$DistRepo = "https://github.com/LalitYadav07/radar-pd-installer.git",
+    [string]$RawBase = "https://raw.githubusercontent.com/LalitYadav07/radar-pd-installer/main",
     [string]$AppRepo = "https://github.com/LalitYadav07/Impurity_detection_GSAS_ver6.git"
 )
 
@@ -112,7 +112,7 @@ $VenvPython = Join-Path $VenvDir "Scripts\python.exe"
 
 & $VenvPython -m pip install --upgrade pip
 
-Write-Host "Installing RADAR-PD prototype from GitHub..."
+Write-Host "Installing RADAR-PD from GitHub..."
 & $VenvPython -m pip install `
     "radar-pd-gsasii-runtime @ $RuntimeWheel" `
     "radar-pd[app] @ git+$DistRepo#subdirectory=radar_pd"
