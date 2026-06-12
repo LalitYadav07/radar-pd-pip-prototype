@@ -119,6 +119,8 @@ Write-Host "Installing RADAR-PD from GitHub..."
 & $VenvPython -m pip install `
     "radar-pd-gsasii-runtime @ $RuntimeWheel" `
     "radar-pd[app] @ git+$DistRepo#subdirectory=radar_pd"
+& $VenvPython -m pip install --upgrade --force-reinstall --no-deps `
+    "radar-pd @ git+$DistRepo#subdirectory=radar_pd"
 
 if (Test-Path (Join-Path $SourceDir ".git")) {
     Write-Host "Updating RADAR-PD source checkout: $SourceDir"

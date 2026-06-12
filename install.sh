@@ -74,6 +74,8 @@ echo "Installing RADAR-PD from GitHub..."
 "$VENV_DIR/bin/python" -m pip install \
   "radar-pd-gsasii-runtime @ $RUNTIME_WHEEL" \
   "radar-pd[app] @ git+$DIST_REPO#subdirectory=radar_pd"
+"$VENV_DIR/bin/python" -m pip install --upgrade --force-reinstall --no-deps \
+  "radar-pd @ git+$DIST_REPO#subdirectory=radar_pd"
 
 if [[ -d "$SOURCE_DIR/.git" ]]; then
   echo "Updating RADAR-PD source checkout: $SOURCE_DIR"
