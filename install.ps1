@@ -133,8 +133,40 @@ Write-Host "Running GSAS-II smoke diagnostic..."
 
 $LaunchScript = Join-Path $InstallRoot "launch-radar-pd.ps1"
 @"
+param(
+    [int]`$Port = 8501,
+    [string]`$Address = "127.0.0.1"
+)
+
+function Test-PortAvailable {
+    param([int]`$CandidatePort)
+    try {
+        `$listener = [System.Net.Sockets.TcpListener]::new([System.Net.IPAddress]::Parse(`$Address), `$CandidatePort)
+        `$listener.Start()
+        `$listener.Stop()
+        return `$true
+    } catch {
+        return `$false
+    }
+}
+
+if (-not (Test-PortAvailable `$Port)) {
+    `$requestedPort = `$Port
+    for (`$candidate = 8502; `$candidate -le 8599; `$candidate++) {
+        if (Test-PortAvailable `$candidate) {
+            `$Port = `$candidate
+            break
+        }
+    }
+    if (`$Port -eq `$requestedPort -and -not (Test-PortAvailable `$Port)) {
+        throw "No available Streamlit port found in range 8501-8599."
+    }
+    Write-Host "Port `$requestedPort is busy; using port `$Port instead."
+}
+
 `$env:RADAR_PD_CACHE_HOME = "$CacheDir"
-& "$VenvDir\Scripts\radar-pd.exe" ui --source-root "$SourceDir"
+Write-Host "Launching RADAR-PD at http://`$Address`:`$Port"
+& "$VenvDir\Scripts\radar-pd.exe" ui --source-root "$SourceDir" --address `$Address --port `$Port
 "@ | Set-Content -Path $LaunchScript -Encoding UTF8
 
 Write-Host ""
@@ -145,3 +177,4 @@ Write-Host "  $VenvDir\Scripts\Activate.ps1"
 Write-Host ""
 Write-Host "Launch GUI:"
 Write-Host "  powershell -ExecutionPolicy Bypass -File $LaunchScript"
+Write-Host "  powershell -ExecutionPolicy Bypass -File $LaunchScript -Port 8502"

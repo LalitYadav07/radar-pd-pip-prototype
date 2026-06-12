@@ -86,6 +86,13 @@ Then launch:
 powershell -ExecutionPolicy Bypass -File .\launch-radar-pd.ps1
 ```
 
+If port `8501` is already in use, the generated launcher will choose the next
+available port. You can also request a port explicitly:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\launch-radar-pd.ps1 -Port 8502
+```
+
 Expected local-folder layout:
 
 ```text
