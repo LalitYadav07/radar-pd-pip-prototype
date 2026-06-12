@@ -3,7 +3,10 @@ param(
     [string]$PythonBin = "python",
     [string]$DistRepo = "https://github.com/LalitYadav07/radar-pd-installer.git",
     [string]$RawBase = "https://raw.githubusercontent.com/LalitYadav07/radar-pd-installer/main",
-    [string]$AppRepo = "https://github.com/LalitYadav07/Impurity_detection_GSAS_ver6.git"
+    [string]$AppRepo = "https://github.com/LalitYadav07/Impurity_detection_GSAS_ver6.git",
+    [string]$Catalogs = "all",
+    [switch]$SkipCatalogs,
+    [switch]$ForceCatalogs
 )
 
 $ErrorActionPreference = "Stop"
@@ -130,6 +133,20 @@ if (Test-Path (Join-Path $SourceDir ".git")) {
 
 Write-Host "Running GSAS-II smoke diagnostic..."
 & (Join-Path $VenvDir "Scripts\radar-pd.exe") doctor --smoke-gsas-project
+
+if ($SkipCatalogs) {
+    Write-Host "Skipping built-in catalog download because -SkipCatalogs was supplied."
+} else {
+    Write-Host "Installing built-in RADAR-PD catalogs: $Catalogs"
+    $CatalogArgs = @("install-catalogs", "--source-root", $SourceDir, "--catalog", $Catalogs)
+    if ($ForceCatalogs) {
+        $CatalogArgs += "--force"
+    }
+    & (Join-Path $VenvDir "Scripts\radar-pd.exe") @CatalogArgs
+    if ($LASTEXITCODE -ne 0) {
+        throw "Built-in catalog installation failed."
+    }
+}
 
 $LaunchScript = Join-Path $InstallRoot "launch-radar-pd.ps1"
 @"

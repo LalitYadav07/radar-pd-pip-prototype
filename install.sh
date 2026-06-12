@@ -8,6 +8,7 @@ PYTHON_BIN="${PYTHON_BIN:-python3.12}"
 VENV_DIR="${RADAR_PD_VENV:-$HOME/radar-pd-env}"
 SOURCE_DIR="${RADAR_PD_SOURCE_DIR:-$HOME/.local/share/radar-pd/source/Impurity_detection_GSAS_ver6}"
 CACHE_HOME="${RADAR_PD_CACHE_HOME:-$HOME/.cache/radar-pd}"
+CATALOGS="${RADAR_PD_CATALOGS:-all}"
 BOOTSTRAP_DIR="${RADAR_PD_BOOTSTRAP_DIR:-$(pwd)/.radar-pd-bootstrap}"
 PYTHON_INSTALL_DIR="${RADAR_PD_PYTHON_INSTALL_DIR:-$BOOTSTRAP_DIR/python}"
 UV_BIN="${UV_BIN:-}"
@@ -85,6 +86,17 @@ fi
 
 echo "Running GSAS-II smoke diagnostic..."
 "$VENV_DIR/bin/radar-pd" doctor --smoke-gsas-project
+
+if [[ "${RADAR_PD_SKIP_CATALOGS:-0}" == "1" ]]; then
+  echo "Skipping built-in catalog download because RADAR_PD_SKIP_CATALOGS=1."
+else
+  catalog_args=(install-catalogs --source-root "$SOURCE_DIR" --catalog "$CATALOGS")
+  if [[ "${RADAR_PD_FORCE_CATALOGS:-0}" == "1" ]]; then
+    catalog_args+=(--force)
+  fi
+  echo "Installing built-in RADAR-PD catalogs: $CATALOGS"
+  "$VENV_DIR/bin/radar-pd" "${catalog_args[@]}"
+fi
 
 mkdir -p "$(dirname "$LAUNCH_SCRIPT")"
 cat > "$LAUNCH_SCRIPT" <<LAUNCH_SCRIPT_CONTENT

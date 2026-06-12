@@ -4,8 +4,9 @@ import argparse
 import sys
 
 from .commands import run_pipeline, run_ui
-from .data import install_data, print_paths
+from .data import CATALOG_CHOICES, install_builtin_catalogs, install_data, print_paths
 from .doctor import run_doctor
+from .source import find_source_root
 
 
 def _doctor(args: argparse.Namespace) -> int:
@@ -22,6 +23,16 @@ def _install_data(args: argparse.Namespace) -> int:
         source=args.source,
         hf_repo=args.hf_repo,
         hf_revision=args.hf_revision,
+        force=args.force,
+    )
+    return 0
+
+
+def _install_catalogs(args: argparse.Namespace) -> int:
+    source_root = find_source_root(args.source_root)
+    install_builtin_catalogs(
+        source_root=source_root,
+        catalog=args.catalog,
         force=args.force,
     )
     return 0
@@ -79,6 +90,20 @@ def build_parser() -> argparse.ArgumentParser:
     install.add_argument("--hf-revision", help="Optional Hugging Face revision.")
     install.add_argument("--force", action="store_true", help="Replace an existing pack.")
     install.set_defaults(func=_install_data)
+
+    catalogs = subparsers.add_parser(
+        "install-catalogs",
+        help="Download and install built-in RADAR-PD neutron/X-ray catalogs.",
+    )
+    catalogs.add_argument("--source-root", help="Existing RADAR-PD source checkout.")
+    catalogs.add_argument(
+        "--catalog",
+        choices=CATALOG_CHOICES,
+        default="all",
+        help="Catalog to install. Default: all.",
+    )
+    catalogs.add_argument("--force", action="store_true", help="Replace existing catalog directories.")
+    catalogs.set_defaults(func=_install_catalogs)
 
     paths = subparsers.add_parser("paths", help="Show cache/runtime paths.")
     paths.set_defaults(func=_paths)

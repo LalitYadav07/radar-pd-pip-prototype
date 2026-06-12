@@ -9,6 +9,7 @@ description = "RADAR-PD installer and runtime launcher"
 requires-python = ">=3.12,<3.13"
 dependencies = [
   "radar-pd-gsasii-runtime==0.0.1",
+  "gdown",
   "huggingface-hub>=0.24",
   "platformdirs>=4",
   "pyyaml>=6",
@@ -20,7 +21,6 @@ app = [
   "pandas",
   "plotly",
   "psutil",
-  "gdown",
   "scikit-learn",
   "pymatgen",
   "torch",

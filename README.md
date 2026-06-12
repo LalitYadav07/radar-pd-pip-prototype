@@ -7,8 +7,8 @@ graphical application and command-line launcher on Linux and native Windows.
 
 The installer creates a local Python environment, installs the RADAR-PD launcher
 package, installs a bundled GSAS-II runtime wheel for the host platform, clones
-the RADAR-PD application source, and runs a GSAS-II smoke diagnostic before
-reporting success.
+the RADAR-PD application source, runs a GSAS-II smoke diagnostic, and downloads
+the built-in neutron and X-ray search catalogs before reporting success.
 
 ## Platform Support
 
@@ -20,6 +20,10 @@ reporting success.
 Both installers require internet access for Python dependencies and source
 checkout. If Python 3.12 is not available, the installers bootstrap a local
 Python 3.12 with `uv`.
+
+The default install also downloads the built-in RADAR-PD neutron and X-ray
+catalog archives from the configured Google Drive sources. Use the documented
+skip options below if you need an app-only install.
 
 ## Quick Start: Linux
 
@@ -35,6 +39,20 @@ curl -LsSf https://raw.githubusercontent.com/LalitYadav07/radar-pd-installer/mai
     RADAR_PD_CACHE_HOME="$PWD/cache" \
     RADAR_PD_BOOTSTRAP_DIR="$PWD/.bootstrap" \
     bash
+```
+
+Install only one built-in catalog:
+
+```bash
+curl -LsSf https://raw.githubusercontent.com/LalitYadav07/radar-pd-installer/main/install.sh \
+  | RADAR_PD_CATALOGS=neutron bash
+```
+
+Skip catalog download:
+
+```bash
+curl -LsSf https://raw.githubusercontent.com/LalitYadav07/radar-pd-installer/main/install.sh \
+  | RADAR_PD_SKIP_CATALOGS=1 bash
 ```
 
 Launch:
@@ -69,6 +87,18 @@ iwr https://raw.githubusercontent.com/LalitYadav07/radar-pd-installer/main/insta
 powershell -ExecutionPolicy Bypass -File .\install.ps1 -InstallRoot $PWD
 ```
 
+Install only one built-in catalog:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\install.ps1 -InstallRoot $PWD -Catalogs neutron
+```
+
+Skip catalog download:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\install.ps1 -InstallRoot $PWD -SkipCatalogs
+```
+
 Launch:
 
 ```powershell
@@ -89,7 +119,7 @@ For local-folder installs:
 ```text
 radar-pd-local/
   env/          Python virtual environment
-  source/       RADAR-PD application checkout
+  source/       RADAR-PD application checkout with data/database_* catalogs
   cache/        RADAR-PD data cache
   .bootstrap/   uv and managed Python, only if Python 3.12 was missing
   launch-radar-pd.sh or launch-radar-pd.ps1
@@ -111,7 +141,10 @@ It verifies:
 - Python 3.12 is active.
 - The bundled GSAS-II runtime can be imported.
 - A minimal GSAS-II `.gpx` project can be created and saved.
-- Installed RADAR-PD data packs can be discovered.
+- Optional user data packs in the RADAR-PD cache can be discovered.
+
+Built-in neutron/X-ray catalog layout is validated by `radar-pd install-catalogs`
+during installation.
 
 Run it manually any time:
 
@@ -121,8 +154,25 @@ radar-pd doctor --smoke-gsas-project
 
 ## Data Catalogs
 
-Large diffraction catalogs and example datasets are not stored in the installer
-wheel. Install or copy data into the RADAR-PD cache with:
+The default installers download the built-in RADAR-PD catalogs into the cloned
+application checkout:
+
+```text
+source/data/database_neutron
+source/data/database_xray
+```
+
+Install or repair them manually:
+
+```bash
+radar-pd install-catalogs --source-root /path/to/Impurity_detection_GSAS_ver6 --catalog all
+```
+
+Use `--catalog neutron` or `--catalog xray` to install one database, and use
+`--force` to replace an existing catalog directory.
+
+Additional user database packs can still be installed into the RADAR-PD cache
+with:
 
 ```bash
 radar-pd install-data --source /path/to/catalog --name standard
