@@ -54,11 +54,12 @@ def activate_runtime_and_source(source_root: Path) -> dict[str, str]:
     env = os.environ.copy()
     env["PYTHONUNBUFFERED"] = "1"
     env["PYTHONIOENCODING"] = "utf-8"
+    env["PYTHONSAFEPATH"] = "1"
     env[SOURCE_ENV] = str(source_root)
     env["RADAR_PD_GSASII_ROOT"] = str(gsas_root)
     existing_pythonpath = env.get("PYTHONPATH", "")
     env["PYTHONPATH"] = os.pathsep.join(
-        filter(None, [str(scripts_root), str(source_root), str(gsas_root), existing_pythonpath])
+        filter(None, [str(gsas_root), str(scripts_root), str(source_root), existing_pythonpath])
     )
     return env
 

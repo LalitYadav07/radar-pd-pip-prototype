@@ -28,6 +28,8 @@ def run_ui(
         str(port),
         "--server.address",
         address,
+        "--server.headless",
+        "true",
         "--browser.gatherUsageStats=false",
         *streamlit_args,
     ]
